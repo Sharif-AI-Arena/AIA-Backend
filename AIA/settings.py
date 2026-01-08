@@ -1,5 +1,6 @@
 """Django settings for the AIA project."""
 
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -46,6 +47,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "captcha",
+    "drf_spectacular",
+    "core",
 ]
 
 if USE_S3:
@@ -163,12 +166,17 @@ if USE_S3:
     else:
         MEDIA_URL = f'{AWS_S3_ENDPOINT_URL.rstrip("/")}/{AWS_STORAGE_BUCKET_NAME}/'
 
+AUTHENTICATION_BACKENDS = [
+    "core.models.EmailModelBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
 
 # REST framework configuration
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
@@ -176,12 +184,28 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 if DEBUG:
     REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"].append(
         "rest_framework.renderers.BrowsableAPIRenderer"
     )
+
+
+# Simple JWT settings (tweak as needed)
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+
+# drf-spectacular / OpenAPI
+SPECTACULAR_SETTINGS = {
+    "TITLE": "AIA API",
+    "DESCRIPTION": "AIA project API",
+    "VERSION": "1.0.0",
+}
 
 
 # CORS configuration
