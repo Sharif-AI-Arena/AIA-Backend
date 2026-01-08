@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "core",
     "participant",
+    "staff",
 ]
 
 if USE_S3:

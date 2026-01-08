@@ -30,6 +30,9 @@ class ParticipantInfo(models.Model):
     department = models.CharField(max_length=100)
     gender = models.CharField(max_length=1, default="M", choices=GENDER_CHOICES)
     resume = models.FileField(upload_to="resumes/", blank=True, null=True)
+    image = models.ImageField(upload_to="participants/", blank=True, null=True)
+    github = models.URLField(max_length=200, blank=True, null=True)
+    linkedin = models.URLField(max_length=200, blank=True, null=True)
 
     student_id = models.CharField(max_length=15, blank=True)
     taken_courses = models.CharField(max_length=100, blank=True)
