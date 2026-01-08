@@ -10,8 +10,11 @@ from participant.serializers import (
     ParticipantSerializer,
     ParticipationPlanSerializer,
     ParticipationSerializer,
+    PasswordChangeSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
 )
-from rest_framework import generics, permissions, serializers, status, views
+from rest_framework import generics, permissions, status, views
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
@@ -40,7 +43,7 @@ class ParticipantCreateAPIView(generics.CreateAPIView):
         description="Retrieve the authenticated participant's personal info",
     ),
     put=extend_schema(
-        request={"multipart/form-data": ParticipantInfoSerializer},
+        request=ParticipantInfoSerializer,
         responses={200: ParticipantInfoSerializer},
         description="Update the authenticated participant's personal info",
     ),
@@ -67,7 +70,7 @@ class PasswordResetAPIView(views.APIView):
     ]
 
     @extend_schema(
-        request=serializers.Serializer,
+        request=PasswordResetRequestSerializer,
         responses={200: str},
         description="Request a password reset token for the given email (POST).",
     )
@@ -107,7 +110,7 @@ class PasswordResetAPIView(views.APIView):
         )
 
     @extend_schema(
-        request=serializers.Serializer,
+        request=PasswordResetConfirmSerializer,
         responses={200: str},
         description="Confirm password reset with token and set new password (PUT).",
     )
@@ -144,7 +147,7 @@ class ParticipantPasswordChangeAPIView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(
-        request=serializers.Serializer,
+        request=PasswordChangeSerializer,
         responses={200: str},
         description="Change password for authenticated participant (PUT).",
     )
@@ -189,20 +192,6 @@ class ParticipationByEventAPIView(generics.ListAPIView):
     )
 )
 class ParticipationPlanByEventAPIView(generics.ListAPIView):
-    queryset = ParticipationPlan.objects.all()
-    serializer_class = ParticipationPlanSerializer
-
-    def get_queryset(self):
-        return ParticipationPlan.objects.filter(event=self.kwargs["event_id"])
-
-
-@extend_schema_view(
-    get=extend_schema(
-        responses={200: ParticipationPlanSerializer(many=True)},
-        description="List participation plans for an event (mode of attendance view)",
-    )
-)
-class ModeOfAttendanceByEventAPIView(generics.ListAPIView):
     queryset = ParticipationPlan.objects.all()
     serializer_class = ParticipationPlanSerializer
 

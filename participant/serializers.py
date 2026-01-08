@@ -12,6 +12,21 @@ from participant.models import (
 from rest_framework import serializers
 
 
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True, required=True)
+    new_password = serializers.CharField(write_only=True, required=True)
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    token = serializers.CharField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -47,13 +62,12 @@ class ParticipantSerializer(serializers.ModelSerializer):
 
 class ParticipantInfoSerializer(serializers.ModelSerializer):
     email = serializers.SerializerMethodField(read_only=True)
-    resume = serializers.FileField(allow_null=True, required=False, use_url=True)
 
     class Meta:
         model = ParticipantInfo
         fields = "__all__"
 
-    def get_email(self, obj):
+    def get_email(self, obj) -> str:
         participant = Participant.objects.filter(info=obj).first()
         if participant and participant.user:
             return participant.user.email

@@ -206,6 +206,12 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "AIA API",
     "DESCRIPTION": "AIA project API",
     "VERSION": "1.0.0",
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
+    },
 }
 
 

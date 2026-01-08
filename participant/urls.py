@@ -26,9 +26,4 @@ urlpatterns = [
         views.ParticipationPlanByEventAPIView.as_view(),
         name="plan",
     ),
-    path(
-        "mode/<int:event_id>/",
-        views.ModeOfAttendanceByEventAPIView.as_view(),
-        name="mode",
-    ),
 ]
