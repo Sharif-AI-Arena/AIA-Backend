@@ -1,7 +1,16 @@
 from core.models import Event
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from rest_framework.fields import CharField
 from rest_framework_simplejwt.tokens import RefreshToken
+
+
+class TokenRefreshRequestSerializer(serializers.Serializer):
+    refresh = CharField(write_only=True)
+
+
+class TokenRefreshResponseSerializer(serializers.Serializer):
+    access = CharField(read_only=True)
 
 
 class CustomTokenObtainPairSerializer(serializers.Serializer):

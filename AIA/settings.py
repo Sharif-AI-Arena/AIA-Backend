@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "captcha",
     "drf_spectacular",
     "core",
+    "participant",
 ]
 
 if USE_S3:

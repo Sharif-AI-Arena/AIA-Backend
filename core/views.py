@@ -1,11 +1,17 @@
 from core.models import Event
-from core.serializers import CustomTokenObtainPairSerializer, EventSerializer
+from core.serializers import (
+    CustomTokenObtainPairSerializer,
+    EventSerializer,
+    TokenRefreshRequestSerializer,
+    TokenRefreshResponseSerializer,
+)
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenRefreshView
 
 
 class EmailTokenObtainPairView(APIView):
@@ -43,3 +49,15 @@ class NextEventAPIView(APIView):
             )
         serializer = EventSerializer(event, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CustomTokenRefreshView(TokenRefreshView):
+    """Token refresh endpoint with OpenAPI schema annotations."""
+
+    @extend_schema(
+        request=TokenRefreshRequestSerializer,
+        responses={200: TokenRefreshResponseSerializer},
+        description="Refresh access token using a refresh token",
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
