@@ -10,7 +10,11 @@ from participant.models import (
 
 class ParticipationAdmin(admin.ModelAdmin):
     list_display = ("participant", "plan", "created_time")
-    list_filter = ("plan",)
+    list_filter = (
+        "plan",
+        "plan__mode_of_attendance",
+        "plan__mode_of_attendance__has_lunch",
+    )
     search_fields = ("participant__user__email",)
 
 
@@ -28,6 +32,7 @@ class ParticipationPlanAdmin(admin.ModelAdmin):
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = ("__str__", "get_email")
     search_fields = ("user__email", "info__national_code", "info__phone_number")
+    readonly_fields = ("user", "info")
 
     def get_email(self, obj):
         return obj.user.email

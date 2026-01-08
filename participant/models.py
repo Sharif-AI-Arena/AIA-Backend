@@ -72,7 +72,7 @@ class ParticipationPlan(models.Model):
     )
 
     def __str__(self):
-        return f"{self.event} - {self.mode_of_attendance} - {self.price}"
+        return f"{self.event} - {self.mode_of_attendance}"
 
 
 class Participation(models.Model):
