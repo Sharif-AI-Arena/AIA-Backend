@@ -1,9 +1,14 @@
-from core.models import Event
+import random
+from datetime import timedelta
+
+from django.contrib.auth.models import User
+from rest_framework.exceptions import ValidationError
+
+from core.models import Event, EmailVerification
 from core.serializers import (
-    CustomTokenObtainPairSerializer,
     EventSerializer,
     TokenRefreshRequestSerializer,
-    TokenRefreshResponseSerializer,
+    TokenRefreshResponseSerializer, EmailCheckSerializer, EmailPasswordLoginSerializer, VerifyEmailAndSignupSerializer,
 )
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
@@ -14,20 +19,92 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
-class EmailTokenObtainPairView(APIView):
+def send_verification_code(email: str) -> None:
+    existing = EmailVerification.objects.filter(email=email).first()
+
+    if existing and not existing.is_expired:
+        raise ValidationError(
+            {
+                "detail": "Verification code already sent.",
+                "retry_after_seconds": existing.remaining_seconds,
+            }
+        )
+
+    # if
+    EmailVerification.objects.filter(email=email).delete()
+
+    code = str(random.randint(100000, 999999))
+
+    EmailVerification.objects.create(
+        email=email,
+        code=code,
+    )
+
+    print(f"[DEV] Verification code for {email}: {code}")
+
+class EmailCheckAPIView(APIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
-        request=CustomTokenObtainPairSerializer,
-        responses={200: CustomTokenObtainPairSerializer},
-        description="Obtain JWT access and refresh tokens using email and password",
+        request=EmailCheckSerializer,
+        responses=EmailCheckSerializer,
+        description="Check email and auto-send verification code if new user",
     )
-    def post(self, request, *args, **kwargs):
-        serializer = CustomTokenObtainPairSerializer(
-            data=request.data, context={"request": request}
-        )
+    def post(self, request):
+        serializer = EmailCheckSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+        email = serializer.validated_data["email"]
+
+        exists = User.objects.filter(email=email).exists()
+
+        code_sent = False
+        if not exists:
+            send_verification_code(email)
+            code_sent = True
+
+        return Response(
+            {
+                "exists": exists,
+                "code_sent": code_sent,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class EmailPasswordLoginAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        request=EmailPasswordLoginSerializer,
+        responses=EmailPasswordLoginSerializer,
+        description="Login with email and password",
+    )
+
+    def post(self, request):
+        serializer = EmailPasswordLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(
+            serializer.validated_data,
+            status=status.HTTP_200_OK,
+        )
+
+class VerifyEmailAndSignupAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        request=VerifyEmailAndSignupSerializer,
+        responses=VerifyEmailAndSignupSerializer,
+        description="Verify email and signup code",
+    )
+
+    def post(self, request):
+        serializer = VerifyEmailAndSignupSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(
+            serializer.validated_data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class NextEventAPIView(APIView):
